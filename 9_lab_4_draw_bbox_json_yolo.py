@@ -36,8 +36,8 @@ def draw_bbs(img_fp, annotations):
     
     # img.show() 
     out_img_fp=get_output_file_path(img_fp)
-    print('out_img_fp',out_img_fp)
-    img.save(out_img_fp)   
+    # print('out_img_fp',out_img_fp)
+    # img.save(out_img_fp)   
     generate_annotation_file(out_img_fp, annotation_lines)   
 
 def generate_annotation_file(out_img_fp, annotation_lines):
