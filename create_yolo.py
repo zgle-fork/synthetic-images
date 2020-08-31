@@ -22,10 +22,6 @@ parser.add_argument("-g", "--groups", type=bool, default=False,
                     help="Include groups of objects in training set?")
 parser.add_argument("-mut", "--mutate", type=bool, default=False,
                     help="Perform mutatuons to objects (rotation, brightness, shapness, contrast)")
-parser.add_argument("-sz", "--sizes", type=str, default="0.4,0.5,0.6,0.8,1.0",
-                    help="resize ratios")
-parser.add_argument("-cps", "--count_per_size", type=int, default="4",
-                    help="count_per_size")
 args = parser.parse_args()
 
 
@@ -34,12 +30,9 @@ base_bkgs_path = args.backgrounds
 bkg_images = [f for f in os.listdir(base_bkgs_path) if not f.startswith(".")]
 objs_path = args.objects
 obj_images = [f for f in os.listdir(objs_path) if not f.startswith(".")]
-
-sizes=[float(x) for x in args.sizes.split(',')]
-print('sizes',sizes)
-
-count_per_size = args.count_per_size
-
+sizes = [0.4, 0.6, 0.8, 1] #, 1.2] # different obj sizes to use TODO make configurable
+sizes = [0.5, 1.0] #, 1.2] # different obj sizes to use TODO make configurable
+count_per_size = 1 # 4 # number of locations for each obj size TODO make configurable
 annotations = [] # store annots here
 output_images = args.output
 n = 1
@@ -108,11 +101,9 @@ def mutate_image(img):
     # rotate image for random andle and generate exclusion mask 
     rotate_angle = random.randint(0,360)
     mask = Image.new('L', img.size, 255)
-
-    # print('before rotation: img.size', img.size)
     img = img.rotate(rotate_angle, expand=True)
     mask = mask.rotate(rotate_angle, expand=True)
-    # print('after rotation: img.size', img.size)
+
 
     # perform some enhancements on image
     enhancers = [ImageEnhance.Brightness, ImageEnhance.Color, ImageEnhance.Contrast, ImageEnhance.Sharpness]
@@ -166,12 +157,10 @@ if __name__ == "__main__":
                 output_fp = output_images + str(n) + ".png"
                 # Save the image
                 bkg_w_obj.save(fp=output_fp, format="png")
-                new_w, new_h=new_obj.size
 
                 if args.annotate:
                     # Make annotation
-                    ann = [{'coordinates': {'height': new_h, 'width': new_w, 'x': x+(0.5*new_w), 'y': y+(0.5*new_h)}, 'label': i.split(".png")[0]}]
-                    # ann = [{'coordinates': {'height': h, 'width': w, 'x': x+(0.5*w), 'y': y+(0.5*h)}, 'label': i.split(".png")[0]}]
+                    ann = [{'coordinates': {'height': h, 'width': w, 'x': x+(0.5*w), 'y': y+(0.5*h)}, 'label': i.split(".png")[0]}]
                     print('ann:',ann)
                     # Save the annotation data
                     annotations.append({
@@ -212,7 +201,7 @@ if __name__ == "__main__":
                             }
                         ann.append(annot)
                     # Paste the obj to the background
-                    bkg_w_obj.paste(new_obj, (x_pos, y_pos), mask=new_obj)
+                    bkg_w_obj.paste(new_obj, (x_pos, y_pos))
 
                 output_fp = output_images + str(n) + ".png"
                 # Save image
